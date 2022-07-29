@@ -7,12 +7,12 @@ namespace TrEngine
 	{
 	public:
 		ExternPointer() = default;
-		ExternPointer(size_t address);
+		ExternPointer(SIZE_T address);
 		ExternPointer(void* p);
 
-		size_t getAddr() const;
+		SIZE_T getAddr() const;
 		void* getPointer() const;
-		size_t a() const; //getAddr
+		SIZE_T a() const; //getAddr
 		void* p() const;  //getPointer
 
 		ExternPointer operator+(const ExternPointer p);
@@ -22,14 +22,14 @@ namespace TrEngine
 		ExternPointer operator+=(const ExternPointer p);
 		ExternPointer operator-=(const ExternPointer p);
 
-		ExternPointer operator=(size_t address);
+		ExternPointer operator=(SIZE_T address);
 		ExternPointer operator=(void* address);
 
-		operator size_t();
+		operator SIZE_T();
 		operator void* ();
 
 	private:
-		size_t pointer;
+		SIZE_T pointer;
 	};
 }
 

@@ -10,16 +10,18 @@
 using namespace std;
 using namespace TrEngine;
 
-HookInstruction::HookInstruction()
+//----------------[X64]-------------------//
+HookInstructionX64::HookInstructionX64()
 {}
-HookInstruction::~HookInstruction()
+HookInstructionX64::~HookInstructionX64()
 {
 	deattach();
 	free();
 }
 
-bool HookInstruction::init(Process& proc, ExternPointer addr, uint8_t tramplin_size, HookFunction function)
+bool HookInstructionX64::init(Process& proc, ExternPointer addr, uint8_t tramplin_size, HookFunction function)
 {
+	deattach();
 	free();
 	if (tramplin_size < jumpInstLen || MaxInstructionLen * 2 < tramplin_size)
 		return false;
@@ -31,19 +33,19 @@ bool HookInstruction::init(Process& proc, ExternPointer addr, uint8_t tramplin_s
 
 	readOriginalInstructin();
 	tramplin_addr = findSpaceForTramplin();
-	cout << "tramplin: " << tramplin_addr.p() << endl;
+	cout << "Tramplin: " << tramplin_addr.p() << endl;
 	if (tramplin_addr == nullptr)
 		return false;
 
 	hook_jmp.offset = int32_t(size_t(tramplin_addr) - size_t(addr) - sizeof(HookJump));
-	//*tramplin = Tramplin();
+	
 	tramplin.addr = uint64_t(function);
 	tramplin.ret.offset = int32_t(size_t(addr) - size_t(tramplin_addr) - 8*2 + tramplin_size - sizeof(HookJump));
 	process->write(tramplin_addr, &tramplin, sizeof(tramplin));
 
 	return true;
 }
-bool HookInstruction::attach()
+bool HookInstructionX64::attach()
 {
 	is_attach = true;
 	
@@ -61,7 +63,7 @@ bool HookInstruction::attach()
 
 	return true;
 }
-void HookInstruction::deattach()
+void HookInstructionX64::deattach()
 {
 	if (!is_attach)
 		return;
@@ -75,8 +77,7 @@ void HookInstruction::deattach()
 }
 
 //private
-
-void HookInstruction::readOriginalInstructin()
+void HookInstructionX64::readOriginalInstructin()
 {
 	/*uint8_t const * const cursor = reinterpret_cast<uint8_t*>(addr);
 
@@ -85,7 +86,7 @@ void HookInstruction::readOriginalInstructin()
 
 	process->read(addr, original_opcode, original_opcode_size);
 }
-ExternPointer HookInstruction::findSpaceForTramplin()
+ExternPointer HookInstructionX64::findSpaceForTramplin()
 {
 	SYSTEM_INFO sys_inf;
 	GetSystemInfo(&sys_inf);
@@ -108,12 +109,8 @@ ExternPointer HookInstruction::findSpaceForTramplin()
 	ExternPointer alloc_mem = nullptr;
 	for (size_t i = target_region; i != -1; --i)
 	{
-		/*alloc_mem = VirtualAllocEx(process->getHandle(),
-			PVOID(size_t(mem_list[i].BaseAddress) - sizeof(Tramplin)), 
-			sizeof(Tramplin),
-			MEM_RESERVE | MEM_COMMIT,
-			PAGE_EXECUTE_READWRITE);*/
-		alloc_mem = process->virtualAlloc(size_t(mem_list[i].BaseAddress) - sizeof(Tramplin), sizeof(Tramplin), PAGE_EXECUTE_READWRITE);
+		alloc_mem = process->virtualAlloc(size_t(0), sizeof(Tramplin), MEM_COMMIT | MEM_RESERVE | MEM_TOP_DOWN, PAGE_EXECUTE_READWRITE);
+		cout << std::hex << (size_t(mem_list[i].BaseAddress) - sizeof(Tramplin)) << std::dec << " " << GetLastError() << endl;
 
 		if (alloc_mem)
 			break;
@@ -131,9 +128,72 @@ ExternPointer HookInstruction::findSpaceForTramplin()
 	return alloc_mem;
 }
 
-void HookInstruction::free()
+void HookInstructionX64::free()
 {
 	if (process != nullptr)
 		VirtualFreeEx(process->getHandle(), tramplin_addr, 0, MEM_RELEASE);
 	tramplin_addr = nullptr;
+}
+
+
+
+//----------------[X32]-------------------//
+HookInstructionX32::HookInstructionX32()
+{}
+HookInstructionX32::~HookInstructionX32()
+{
+	deattach();
+}
+
+bool HookInstructionX32::init(Process& proc, ExternPointer addr, uint8_t tramplin_size, HookFunction function)
+{
+	deattach();
+	if (tramplin_size < jumpInstLen || MaxInstructionLen * 2 < tramplin_size)
+		return false;
+
+	this->process = &proc;
+	this->addr = addr;
+	this->original_opcode_size = tramplin_size;
+	this->function = function;
+
+	readOriginalInstructin();
+
+	hook_jmp.offset = int32_t(size_t(function) - size_t(addr) - sizeof(HookJump));
+
+	return true;
+}
+bool HookInstructionX32::attach()
+{
+	is_attach = true;
+
+	DWORD old_protect;
+	VirtualProtectEx(process->getHandle(), addr, original_opcode_size, PAGE_EXECUTE_READWRITE, &old_protect);
+	
+	for (uint8_t i = 0; i < original_opcode_size; ++i)
+	{
+		process->write(addr + i, &Nop, sizeof(Nop));
+	}
+	WriteProcessMemory(process->getHandle(), addr, &hook_jmp, sizeof(hook_jmp), nullptr);
+
+	VirtualProtectEx(process->getHandle(), (LPVOID)addr, original_opcode_size, old_protect, &old_protect);
+
+	return true;
+}
+void HookInstructionX32::deattach()
+{
+	if (!is_attach)
+		return;
+
+	is_attach = false;
+
+	DWORD old_protect;
+	VirtualProtectEx(process->getHandle(), addr, original_opcode_size, PAGE_EXECUTE_READWRITE, &old_protect);
+	WriteProcessMemory(process->getHandle(), addr, &original_opcode, original_opcode_size, nullptr);
+	VirtualProtectEx(process->getHandle(), (LPVOID)addr, original_opcode_size, old_protect, &old_protect);
+}
+
+//private
+void HookInstructionX32::readOriginalInstructin()
+{
+	process->read(addr, original_opcode, original_opcode_size);
 }

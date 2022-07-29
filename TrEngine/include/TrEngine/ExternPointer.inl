@@ -4,14 +4,14 @@ namespace TrEngine
 {
 	inline ExternPointer::ExternPointer(void* p)
 	{
-		pointer = reinterpret_cast<size_t>(p);
+		pointer = reinterpret_cast<SIZE_T>(p);
 	}
-	inline ExternPointer::ExternPointer(size_t address)
+	inline ExternPointer::ExternPointer(SIZE_T address)
 	{
 		pointer = address;
 	}
 
-	inline size_t ExternPointer::getAddr() const
+	inline SIZE_T ExternPointer::getAddr() const
 	{
 		return pointer;
 	}
@@ -19,7 +19,7 @@ namespace TrEngine
 	{
 		return reinterpret_cast<void*>(pointer);
 	}
-	inline size_t ExternPointer::a() const
+	inline SIZE_T ExternPointer::a() const
 	{
 		return pointer;
 	}
@@ -56,17 +56,17 @@ namespace TrEngine
 		return pointer -= p.pointer;
 	}
 
-	inline ExternPointer ExternPointer::operator=(size_t address)
+	inline ExternPointer ExternPointer::operator=(SIZE_T address)
 	{
 		return { pointer = address };
 	}
 	inline ExternPointer ExternPointer::operator=(void* address)
 	{
-		pointer = reinterpret_cast<size_t>(address);
+		pointer = reinterpret_cast<SIZE_T>(address);
 		return { pointer };
 	}
 
-	inline ExternPointer::operator size_t()
+	inline ExternPointer::operator SIZE_T()
 	{
 		return pointer;
 	}

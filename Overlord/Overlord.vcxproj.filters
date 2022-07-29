@@ -15,39 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Process.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\HookInstruction.cpp">
+    <ClCompile Include="MainWindow.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\ExternPointer.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Pipe.cpp">
+    <ClCompile Include="Cheat.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\TrEngine\ImportExport.hpp">
-      <Filter>Файлы заголовков</Filter>
+    <ClInclude Include="MainWindow.hpp">
+      <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="include\TrEngine\Process.hpp">
-      <Filter>Файлы заголовков</Filter>
+    <ClInclude Include="Cheat.hpp">
+      <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="include\TrEngine\HookInstruction.hpp">
-      <Filter>Файлы заголовков</Filter>
+    <ClInclude Include="PipeMessageStruct.hpp">
+      <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="include\TrEngine\ExternPointer.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TrEngine\Pipe.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="include\TrEngine\ExternPointer.inl">
-      <Filter>Файлы заголовков</Filter>
-    </None>
   </ItemGroup>
 </Project>

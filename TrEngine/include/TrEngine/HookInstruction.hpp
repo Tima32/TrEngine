@@ -11,20 +11,20 @@
 
 namespace TrEngine
 {
-	class HookInstruction
+	
+	class HookInstructionX64
 	{
 	public:
 		typedef void (*HookFunction)();//asm func
 
-		HookInstruction();
-		~HookInstruction();
+		HookInstructionX64();
+		~HookInstructionX64();
 
 		//tramplin_size min 5 max 30
 		bool init(Process& process, ExternPointer addr, uint8_t tramplin_size, HookFunction function);
 		bool attach();
 		void deattach();
 
-		static inline void* GetRealAddressFunction(const void* addr);
 	private:
 		void readOriginalInstructin();
 		ExternPointer findSpaceForTramplin();
@@ -63,7 +63,47 @@ namespace TrEngine
 		bool is_attach{ false };
 	};
 
-	inline void* HookInstruction::GetRealAddressFunction(const void* addr)
+	class HookInstructionX32
+	{
+	public:
+		typedef void (*HookFunction)();//asm func
+
+		HookInstructionX32();
+		~HookInstructionX32();
+
+		//tramplin_size min 5 max 30
+		bool init(Process& process, ExternPointer addr, uint8_t tramplin_size, HookFunction function);
+		bool attach();
+		void deattach();
+
+	private:
+		void readOriginalInstructin();
+
+#pragma pack(push, 1)
+		struct HookJump
+		{
+			uint8_t jmp = { 0xE8 };
+			int32_t offset;
+		};
+#pragma pack(pop)
+
+		constexpr static uint8_t MaxInstructionLen{ 15 };
+		constexpr static uint8_t OriginalOpcodeSize{ MaxInstructionLen * 2 };
+		constexpr static uint8_t jumpInstLen{ sizeof(HookJump) };
+		constexpr static uint8_t Nop{ 0x90 };
+
+		uint8_t original_opcode[MaxInstructionLen * 2]{ Nop };
+		uint8_t original_opcode_size{ 0 };
+		HookJump hook_jmp;
+
+		Process* process{ nullptr };
+		ExternPointer addr{ nullptr };
+		HookFunction function{ nullptr };
+
+		bool is_attach{ false };
+	};
+
+	inline void* GetRealAddressFunction(const void* addr)
 	{
 	#ifdef _DEBUG
 #pragma pack(push, 1)
