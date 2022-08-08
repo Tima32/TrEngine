@@ -28,6 +28,9 @@ enum class PipeMessageId : uint32_t
 	MagicSpendingMultiplerTrue,
 	MagicSpendingMultiplerFalse,
 	MagicSpendingMultipler,
+
+	OneHitKillTrue,
+	OneHitKillFalse,
 };
 
 struct PipeNoArgs

@@ -146,6 +146,18 @@ bool Cheat::setMPMultipler(float value)
 	return pipe.write(&m, sizeof m);
 }
 
+// One hit kill
+bool Cheat::activeOneHitKill()
+{
+	PipeNoArgs m{ PipeMessageId::OneHitKillTrue };
+	return pipe.write(&m, sizeof m);
+}
+void Cheat::deactiveOneHitKill()
+{
+	PipeNoArgs m{ PipeMessageId::OneHitKillFalse };
+	pipe.write(&m, sizeof m);
+}
+
 //private
 void Cheat::destructor()
 {

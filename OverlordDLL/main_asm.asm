@@ -6,6 +6,7 @@ EXTERN HPFunc :PROC ; HPFunc
 EXTERN DamageFunc :PROC ; DamageFunc
 EXTERN CheckHPFunc :PROC ; CheckHPFunc
 EXTERN ManaFunc :PROC ; ManaFunc
+EXTERN IsHPZeroFunc :PROC ; IsHPZeroFunc
 
 .data
 
@@ -96,6 +97,27 @@ ManaHookF endp
 ManaHookFEnd proc
 ret
 ManaHookFEnd endp
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+IsHPZeroHookF proc
+	
+	push eax
+
+	mov eax, [esi+000000E4h]
+
+	pusha
+	push esi
+	call IsHPZeroFunc
+	pop esi
+	popa
+
+	fcom dword ptr [esi+000000E4h]
+
+	pop eax
+
+	ret
+IsHPZeroHookF endp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 END

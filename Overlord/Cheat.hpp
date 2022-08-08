@@ -36,6 +36,10 @@ public:
 	void deactiveMPMultipler();
 	bool setMPMultipler(float value);
 
+	// One hit kill
+	bool activeOneHitKill();
+	void deactiveOneHitKill();
+
 private:
 	void destructor();
 

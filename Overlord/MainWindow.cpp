@@ -94,12 +94,22 @@ MainWindow::MainWindow() :
 		mp_multipler_se.setPosition(options_colum_2_x, mp_multipler_cb.getPosition().y);
 		mp_multipler_se.setMin(0);
 		mp_multipler_se.setMax(1);
-		mp_multipler_se.setValue(0.25);
+		mp_multipler_se.setValue(0.1);
 		mp_multipler_se.setTextMode(st::SliderEditHorizontal::TextMode::Value);
 		mp_multipler_se.setTextPrecision(2);
 		mp_multipler_se.setChangeValueEndCallback(
 			[this](st::SliderEditHorizontal& seh, double value)
 			{mp_multipler_value(seh, value); });
+	}
+
+	// One hit kill
+	{
+		one_hit_kill_cb.setFont(font);
+		VerticalLayout(mp_multipler_cb, one_hit_kill_cb, options_interval);
+		one_hit_kill_cb.setString(L"One hit kill");
+		one_hit_kill_cb.setChangeStateCallback(
+			[this](st::CheckBox& le, st::CheckBox::State state)
+			{one_hit_kill(le, state); });
 	}
 
 	process_id_t.setFont(font);
@@ -157,6 +167,9 @@ void MainWindow::event()
 	infinite_mp_cb.event(event_e, focus);
 	mp_multipler_cb.event(event_e, focus);
 	mp_multipler_se.event(event_e, focus);
+
+	// One hit kill
+	one_hit_kill_cb.event(event_e, focus);
 }
 void MainWindow::updateGameInfo()
 {
@@ -175,6 +188,8 @@ void MainWindow::updateGameInfo()
 
 			infinite_mp_cb.setState(st::CheckBox::State::Unchecked);
 			mp_multipler_cb.setState(st::CheckBox::State::Unchecked);
+
+			one_hit_kill_cb.setState(st::CheckBox::State::Unchecked);
 		}
 
 		process_is_open = false;
@@ -204,6 +219,9 @@ void MainWindow::draw()
 	window.draw(infinite_mp_cb);
 	window.draw(mp_multipler_cb);
 	window.draw(mp_multipler_se);
+
+	// One hit kill
+	window.draw(one_hit_kill_cb);
 
 	window.draw(process_id_t);
 
@@ -307,7 +325,7 @@ void MainWindow::minions_set_hp_value(st::SliderEditHorizontal& seh, double valu
 	}
 }
 
-//MP
+// MP
 void MainWindow::infinite_mp(st::CheckBox& le, st::CheckBox::State state)
 {
 	if (state == st::CheckBox::State::Checked)
@@ -354,5 +372,24 @@ void MainWindow::mp_multipler_value(st::SliderEditHorizontal& seh, double value)
 	else
 	{
 		cout << "<MainWindow:set_hp_valuep>Error: Failed to MP spending multipler." << endl;
+	}
+}
+
+// One hit kill
+void MainWindow::one_hit_kill(st::CheckBox& le, st::CheckBox::State state)
+{
+	if (state == st::CheckBox::State::Checked)
+	{
+		if (cheat.activeOneHitKill())
+			cout << "<MainWindow:one_hit_kill>Info: active" << endl;
+		else
+		{
+			le.setState(st::CheckBox::State::Unchecked);
+			cout << "<MainWindow:one_hit_kill>Error: Failed to activate one hit kill." << endl;
+		}
+	}
+	else if (state == st::CheckBox::State::Unchecked)
+	{
+		cheat.deactiveOneHitKill();
 	}
 }

@@ -55,6 +55,10 @@ private:
 	void mp_multipler(st::CheckBox& le, st::CheckBox::State state);
 	st::SliderEditHorizontal mp_multipler_se;
 	void mp_multipler_value(st::SliderEditHorizontal& seh, double value);
+
+	//One hit kill
+	st::CheckBox one_hit_kill_cb;
+	void one_hit_kill(st::CheckBox& le, st::CheckBox::State state);
 	//---------------
 
 	static constexpr float process_id_x{ 20 };

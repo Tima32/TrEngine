@@ -22,6 +22,8 @@ extern "C"
 
 	void ManaHookF();
 	void ManaHookFEnd();
+
+	void IsHPZeroHookF();
 }
 void Deattach();
 
@@ -44,6 +46,9 @@ float minions_set_max_hp_value{ 150 };
 bool infinite_magick{ false };
 bool magic_spending_multipler{ false };
 float magic_spending_multipler_value{ 1 };
+
+// One hit kill
+bool one_hit_kill{ false };
 
 
 #pragma pack(push, 1)
@@ -300,6 +305,66 @@ bool AttachMana()
 	return true;
 }
 
+TrEngine::Offset is_hp_zero_inst_offset{ 0x2CD1FE };
+bool is_hp_zero_is_attach{ false };
+TrEngine::HookInstructionX32 is_hp_zero;
+extern "C" void __cdecl IsHPZeroFunc(uint8_t * pointer)
+{
+	GameEntity* o = reinterpret_cast<GameEntity*>(pointer);
+
+	if (g_overlord == nullptr)
+		return;
+
+	uint32_t type{ 0 }; //0, 1-overlord 2-minion
+
+	//Overlord
+	if (o == &g_overlord->ge)
+		type = 1;
+
+	//Minions
+	if (g_overlord->ge.pointer == o->pointer &&
+		o != &g_overlord->ge)
+		type = 2;
+
+	if (one_hit_kill && type == 0)
+		o->hp = 0;
+
+	cout << "<IsHPZeroFunc>";
+	if (type == 1)
+		cout << " E: Overlord";
+	else if (type == 2)
+		cout << " E: Minion";
+	else
+		cout << " E: Another";
+	cout << endl;
+}
+bool AttachIsHPZero()
+{
+	if (is_hp_zero_is_attach)
+		return true;
+
+	auto inst_addr = is_hp_zero_inst_offset.fingAdderess(module_adr, process);
+	ExternPointer func_begin;
+
+
+	func_begin = TrEngine::GetRealAddressFunction(IsHPZeroHookF);
+
+	if (!is_hp_zero.init(process, inst_addr, 6, TrEngine::HookInstructionX32::HookFunction(&IsHPZeroHookF)))
+	{
+		cout << "<Cheat:AttachIsHPZero>Error: Initialization error." << endl;
+		return false;
+	}
+	if (!is_hp_zero.attach())
+	{
+		cout << "<Cheat:AttachIsHPZero>Error: Attach error." << endl;
+		return false;
+	}
+
+	is_hp_zero_is_attach = true;
+
+	return true;
+}
+
 void PipeMessageFunc(uint8_t* buf, DWORD read)
 {
 	auto p = reinterpret_cast<PipeMessage*>(buf);
@@ -341,6 +406,8 @@ void PipeFunc()
 
 					infinite_magick = false;
 					magic_spending_multipler = false;
+
+					one_hit_kill = false;
 
 					break;
 				}
@@ -385,6 +452,12 @@ void PipeFunc()
 				else if (pn->type == PipeMessageId::MagicSpendingMultipler)
 					magic_spending_multipler_value = reinterpret_cast<PipeSetMPMultipler*>(pn)->mp_multipler;
 
+				// One hit kill
+				else if (pn->type == PipeMessageId::OneHitKillTrue)
+					one_hit_kill = true;
+				else if (pn->type == PipeMessageId::OneHitKillFalse)
+					one_hit_kill = false;
+
 				else
 					cout << "<PipeFunc>Error: Unknown message type." << endl;
 			}
@@ -413,6 +486,7 @@ void Attach()
 	AttachDamage();
 	AttachCheckHP();
 	AttachMana();
+	AttachIsHPZero();
 
 	//Pipe
 	h_pipe = CreateNamedPipe(TEXT("\\\\.\\pipe\\OverlordTrainer"),
